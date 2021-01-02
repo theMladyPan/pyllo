@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+help() {
+echo " Usage: actions [-r] [-d] [-g] [-i]"
+echo " -r, --run: run on local gunicorn WSGI server"
+echo " -d, --deploy: deploy to Google Cloud service"
+echo " -i, --install: perform first-time setup incliding virtual environment and dependencies"
+echo " -g, --debug: run and debug on flask server"
+ 
+}
+
+PROJECT_ID="pyllo-app"
+DB_KEY="/home/$USER/keys/Pyllo-ad6afa3ca14a.json"
+
+deploy() {
+    gcloud app deploy 
+    gcloud app browse
+}
+prerun(){
+    source venv/bin/activate
+    export GOOGLE_APPLICATION_CREDENTIALS=$DB_KEY
+}
+
+run() {
+    prerun
+    gunicorn -b 0.0.0.0:8000 main:app
+}
+
+debug() {
+    prerun
+    export FLASK_APP=main.py
+    export FLASK_ENV=development
+    flask run --host=0.0.0.0
+}
+
+install() {
+    python3 -m venv ./venv
+    source ./venv/bin/activate
+    pip install -r requirements.txt
+    gcloud config set project $PROJECT_ID
+}
+
+update() {
+    source venv/bin/activate
+    pip install -r requirements.txt
+}
+
+case "$1" in
+    "-r") run;;
+    "--run") run;;
+    "-g") debug;;
+    "--debug") debug;;
+    "-d") deploy;;
+    "--deploy") deploy;;
+    "-u") update;;
+    "--update") update;;
+    "-i") install;;
+    "--install") install;;
+
+    *) help;;
+esac
