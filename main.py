@@ -69,10 +69,7 @@ def load_user(user_id):
 @app.route('/')
 def index():
     print("Ha")
-    if current_user.is_anonymous:
-        user_id = "Anon"
-    else:
-        user_id = current_user.id
+    user_id = "Anon" if current_user.is_anonymous else current_user.id
     return render_template('main.html', username=user_id)
 
 @login_required
@@ -97,20 +94,18 @@ def login():
     if request.method == "GET":
         return render_template('login.html', form=form)       
 
-    if 1: #form.validate_on_submit():
-        # Login and validate the user.
-        # user should be an instance of your `User` class
-        user_id = request.form.get("username")
-        try:
-            user = User.get(user_id)
-        except KeyError:
-            flash(f"User {user_id} does not exist")
-            return render_template('login.html', form=form)     
+    # Login and validate the user.
+    # user should be an instance of your `User` class
+    user_id = request.form.get("username")
+    try:
+        user = User.get(user_id)
+    except KeyError:
+        flash(f"User {user_id} does not exist")
+        return render_template('login.html', form=form)     
 
-        login_user(user)
+    login_user(user)
 
-        flash('Logged in successfully.')
-        
+    flash('Logged in successfully.')
 
-        return redirect(url_for('index'))
-    return render_template('login.html', form=form)
+
+    return redirect(url_for('index'))
